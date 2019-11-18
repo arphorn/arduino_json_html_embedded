@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Arphorn.io - chart.js example</title>
+  
+  
+</head>
+<body style="background-color: 	#ffcbb3 ;">
+
+  
+  <h1 style="font-size:400%;font-family:RSU;text-align:center;">AVD EMBEDDED</h1>
+  
+
+  
+  <canvas id="chart" width="600" height="500"></canvas>
+  <canvas id="gate" width="300" height="300"></canvas>
+  <canvas id="Times_sleep" width="500" height="65" style="border: 3px solid #ffffff ;"></canvas>
+  <canvas id="rtime" width="500" height="65" style="border: 3px solid #ffffff ;"></canvas>
+  <canvas id="SLT" width="200" height="100"></canvas>
+  <canvas id="SLTT" width="300" height="200"></canvas>
+  <canvas id="SLED" width="230" height="100" style="background-color: 	#DDA0DD;"></canvas>
+  <canvas id="led" width="300" height="200"></canvas>
+
+  <script type="text/javascript "src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+
+  <script type="text/javascript">
+  
+
+    var socket = io.connect()
+    var ctx = document.getElementById('chart')
+    var ctx_gate = document.getElementById('gate')
+    var ctx_Times_sleep = document.getElementById('Times_sleep');
+    var Times_sleep = ctx_Times_sleep.getContext("2d");
+    Times_sleep.font = "50px RSU";
+
+    var ctx_rtime = document.getElementById('rtime');
+    var rtime = ctx_rtime.getContext("2d");
+    rtime.font = "50px RSU";
+
+    var ctx_SLT = document.getElementById('SLT');
+    var SLTs = ctx_SLT.getContext("2d");
+    SLTs.font = "30px RSU";
+
+    var ctx_SLTT = document.getElementById('SLTT');
+    var SLTss = ctx_SLTT.getContext("2d");
+    SLTss.font = "30px RSU";
+
+    var ctx_SLED = document.getElementById('SLED');
+    var statuss = ctx_SLED.getContext("2d");
+    statuss.font = "50px RSU";
+
+    var ctx_led = document.getElementById('led');
+    var leds = ctx_led.getContext("2d");
+    leds.font = "30px RSU";
+
+    leds.textAlign = "center";
+    leds.fillText("Status LED : ", ctx_led.width/2, ctx_led.height/2);
+    ctx_led.style.left = "1220px";
+    ctx_led.style.top = "410px";
+    ctx_led.style.position = "absolute";
+
+
+    SLTss.textAlign = "center";
+    SLTss.fillText("TIME Sleep : ", ctx_SLTT.width/2, ctx_SLTT.height/2);
+    ctx_SLTT.style.left = "720px";
+    ctx_SLTT.style.top = "520px";
+    ctx_SLTT.style.position = "absolute";
+  
+
+
+    ctx_SLED.style.left = "1270px";
+    ctx_SLED.style.top = "530px";
+    ctx_SLED.style.position = "absolute"
+  
+    
+
+
+    SLTs.textAlign = "center";
+    SLTs.fillText("TIME : ", ctx_SLT.width/2, ctx_SLT.height/2);
+    ctx_SLT.style.left = "730px";
+    ctx_SLT.style.top = "440px";
+    ctx_SLT.style.position = "absolute";
+
+    ctx_rtime.style.left = "750px";
+    ctx_rtime.style.top = "500px";
+    ctx_rtime.style.position = "absolute";
+    
+    
+    
+    
+    ctx_Times_sleep.style.left = "750px";
+    ctx_Times_sleep.style.top = "630px";
+    ctx_Times_sleep.style.position = "absolute";
+
+    ctx.style.left = "50px";
+    ctx.style.top = "150px";  
+    ctx.style.position = "absolute";
+
+
+    ctx_gate.style.left = "900px";
+    ctx_gate.style.top = "150px";
+    ctx_gate.style.position = "absolute";
+
+
+    var data = {
+      labels: [0],
+      datasets: [{
+        data: [0],
+    
+        label: 'LDR Sensor',
+  
+        backgroundColor: '#66CDAA'
+      }]
+    }
+    var data1 =   {
+    labels: ['%Intensity'],
+    datasets: [{
+      label: '#ff66b3',
+      data: [80, 20],
+      backgroundColor: [
+        'rgba(153, 255, 153)',
+        'rgba(255, 255, 77)'       
+      ],
+      borderColor: [
+        'rgba(255, 255, 255)',
+        'rgba(255, 255, 255)'
+   
+      ],
+      borderWidth: 2
+    }]
+  }
+
+  var gradient = Times_sleep.createLinearGradient(0, 0, ctx_Times_sleep.width, 0);
+  gradient.addColorStop("0"," magenta");
+  gradient.addColorStop("0.5", "blue");
+  gradient.addColorStop("1.0", "red");
+
+
+
+
+    var optionsAnimations = {
+        responsive: false,
+        title:{text:"Light Intensity",fontSize: 20 ,display:true},
+        
+  scales: {
+    yAxes: [{
+      stacked: true,
+      gridLines: {
+        display: true,
+        color: "rgba(255,99,132,0.2)"
+      }
+    }]
+
+  }
+    }
+
+
+    var chart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      
+      options: optionsAnimations
+    })
+
+    
+    var gate = new Chart(ctx_gate, {
+      type: 'doughnut',
+      data: data1,
+      
+      options: {cutoutPercentage:40,responsive:false}
+    })
+
+
+    socket.on('LDR_Analog', function (value) {
+     
+      var length = data.labels.length
+
+      if (length >= 20) {
+        data.datasets[0].data.shift()
+        data.labels.shift()
+      }
+      data.labels.push(moment().format('HH:mm:ss'))
+      data.datasets[0].data.push(value)
+      chart.update()
+    })
+
+    socket.on('ldr Sensor', function (value) {
+    data1.datasets[0].data[0]=value;
+    data1.datasets[0].data[1]=100-value;
+
+     gate.update()
+   
+   })
+
+   socket.on('leep_Time', function (value) {
+    
+    Times_sleep.clearRect(0,0,ctx_Times_sleep.width,ctx_Times_sleep.height);
+    Times_sleep.textAlign = "center";
+    Times_sleep.fillStyle=gradient;
+    Times_sleep.fillText(value,ctx_Times_sleep.width/2,ctx_Times_sleep.height/2);
+   })
+
+   socket.on('Realtime', function (value) {
+    
+    rtime.clearRect(0,0,ctx_rtime.width,ctx_rtime.height);
+    rtime.textAlign = "center";
+    
+    rtime.fillStyle= "#8B4513";
+    rtime.fillText(value,ctx_rtime.width/2,ctx_rtime.height/2);
+
+  })
+  socket.on('State_LED', function (value) {
+    
+    statuss.clearRect(0,0,ctx_SLED.width,ctx_SLED.height);
+    statuss.textAlign = "center";
+    
+    statuss.fillStyle= "#FF0000";
+    statuss.fillText(value,ctx_SLED.width/2,ctx_SLED.height/2);
+
+  })
+
+
+  </script>
+  
+
+
+</body>
+</html>
